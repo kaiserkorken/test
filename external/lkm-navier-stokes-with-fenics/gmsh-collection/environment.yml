@@ -1,0 +1,8 @@
+name: gmsh-collection
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - meshio
+prefix: /home/sg/anaconda3/envs/gmsh-collection
+

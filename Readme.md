@@ -28,7 +28,7 @@ For the initial draft, gmsh was used to produce a `.geo` and a `.msh` file
 In order to use the `external/lkm-with-navier-stokes/source/grid_generator.py` provided by LKM inside the docker container, it is neccessary that the xdmf files exist already. The latter can be created with the `external/lkm-with-navier-stokes/gmsh-collection/generate_xdmf_mesh.py` with some tweaks:
 - In a local virtual environment _(outside of the docker container)_, pip install `meshio` and `h5py`
 - In the terminal _(with the venv activated)_, change to the directory `external/lkm-with-navier-stokes/gmsh-collection`
-- Modify line 81: `prune_z = True`-> `prune_z = False` in order for the script to be compatible with the created `.geo` and `.msh` files
+- ~~Modify line 81: `prune_z = True`-> `prune_z = False` in order for the script to be compatible with the created `.geo` and `.msh` files
 - Enter `python` and execute:
   ```
   import generate_xdmf_mesh

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import glob
+import os
+
 import meshio
 from os import path
 import subprocess
@@ -42,19 +44,23 @@ def _create_meshio_mesh(mesh, cell_type, prune_z=False):
         raise RuntimeError()
     # create mesh object
     if prune_z:
-        out_mesh = meshio.Mesh(points=mesh.points[:,:2], cells={cell_type: cells},
-               cell_data={data_name: [cell_data]})
-    else: # pragma: no cover
+        out_mesh = meshio.Mesh(points=mesh.points[:, :2], cells={cell_type: cells},
+                               cell_data={data_name: [cell_data]})
+    else:  # pragma: no cover
         out_mesh = meshio.Mesh(points=mesh.points, cells={cell_type: cells},
-                       cell_data={data_name: [cell_data]})
+                               cell_data={data_name: [cell_data]})
     return out_mesh
 
 
-def _locate_file(basename):
+def _locate_file(basename, directory):
     """Locate a file in the current directory.
     """
+
+    if basename in os.listdir(directory):
+        return os.path.join(directory, basename)
+
     file_extension = path.splitext(basename)[1]
-    files = glob.glob("../*/*/*" + file_extension, recursive=True)
+    files = glob.glob("./*" + file_extension, recursive=True)
     files += glob.glob("./*/*" + file_extension, recursive=True)
     files += glob.glob("./*/*/*" + file_extension, recursive=True)
     file = None
@@ -81,23 +87,23 @@ def generate_xdmf_mesh(geo_file):
     assert path.splitext(geo_file)[1] == '.geo'
     basename = path.basename(geo_file)
     # generate msh file
-    msh_file = _locate_file(basename.replace(".geo", ".msh"))
+    msh_file = _locate_file(basename.replace(".geo", ".msh"), os.path.dirname(geo_file))
     if msh_file is None:
-        try: # pragma: no cover
-            subprocess.run(["gmsh", geo_file, "-3"], check=True)
+        try:  # pragma: no cover
+            subprocess.run(["gmsh", "-v", "0", "-3", geo_file], check=True)
             msh_file = basename.replace(".geo", ".msh")
         except subprocess.SubprocessError:  # pragma: no cover
             raise RuntimeError("GMSH is not installed on your machine and "
                                "the msh file does not exist.")
     # read msh file
-    assert path.exists(msh_file)
+    assert path.exists(msh_file), "File: " + msh_file + "; Location: " + os.getcwd()
     mesh = meshio.read(msh_file)
     # determine dimension
     if "triangle" in mesh.cells_dict and "tetra" not in mesh.cells_dict:
         assert "line" in mesh.cell_data_dict["gmsh:physical"]
         dim = 2
         prune_z = True
-    elif "triangle" in mesh.cells_dict and "tetra" in mesh.cells_dict: # pragma: no cover
+    elif "triangle" in mesh.cells_dict and "tetra" in mesh.cells_dict:  # pragma: no cover
         assert "triangle" in mesh.cell_data_dict["gmsh:physical"]
         dim = 3
         prune_z = False
@@ -107,7 +113,7 @@ def generate_xdmf_mesh(geo_file):
     if dim == 2:
         facet_type = "line"
         cell_type = "triangle"
-    elif dim == 3: # pragma: no cover
+    elif dim == 3:  # pragma: no cover
         facet_type = "triangle"
         cell_type = "tetra"
     # extract facet mesh (codimension one)
@@ -118,6 +124,7 @@ def generate_xdmf_mesh(geo_file):
     cell_mesh = _create_meshio_mesh(mesh, cell_type, prune_z=prune_z)
     xdmf_file = msh_file.replace(".msh", ".xdmf")
     meshio.write(xdmf_file, cell_mesh, data_format="XML")
+
     return xdmf_file, xdmf_facet_marker_file
 
 

@@ -1,7 +1,9 @@
+import os
 import sys
 
 # Add location to path and import "grid_generator"
-sys.path.insert(0, './external/lkm-navier-stokes-with-fenics/source/')
+sys.path.insert(0, '../external/lkm-navier-stokes-with-fenics/source/')
+
 import grid_generator
 
 

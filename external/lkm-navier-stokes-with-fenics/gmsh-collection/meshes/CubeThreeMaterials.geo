@@ -1,14 +1,14 @@
 // mesh of a rectangle consisting of two materials
 
 // geometry variables
-width = 2.0;
-height = 2.0;
-depth = 2.0;
+width = 1.0;
+height = 1.0;
+depth = 1.0;
 
 // number of points per edge
-nx = 6;
-ny = 6;
-nz = 6;
+nx = 3;
+ny = 1;
+nz = 1;
 
 // point of origin
 __lst=newp;
@@ -18,28 +18,30 @@ Point(__lst) = {0,0,0};
 lineX[] = Extrude{width, 0, 0} { Point{__lst}; Layers{nx}; };
 
 // extrude line in y-direction
-plane01[] = Extrude{0, height / 2.0, 0} { Line{lineX[1]}; Layers{ny}; };
+plane01[] = Extrude{0, height / 3.0, 0} { Line{lineX[1]}; Layers{ny}; };
 
 // extrude line in y-direction
-plane02[] = Extrude{0, height / 2.0, 0} { Line{plane01[0]}; Layers{ny}; };
+plane02[] = Extrude{0, height / 3.0, 0} { Line{plane01[0]}; Layers{ny}; };
 
-// extrude surface in z-direction
-volume01[] = Extrude{0, 0, depth / 2.0} { Surface{plane01[1]}; Layers{nz}; };
-volume02[] = Extrude{0, 0, depth / 2.0} { Surface{volume01[0]}; Layers{nz}; };
+// extrude line in y-direction
+plane03[] = Extrude{0, height / 3.0, 0} { Line{plane02[0]}; Layers{ny}; };
 
-// extrude surface in z-direction
-volume03[] = Extrude{0, 0, depth} { Surface{plane02[1]}; Layers{2*nz}; };
+// extrude surfaces in z-direction
+volume01[] = Extrude{0, 0, depth} { Surface{plane01[1], plane02[1], plane03[1]}; Layers{nz}; };
+
 
 // define the boundary indicators
-Physical Surface("left surface", 200) = {volume01[5], volume02[5], volume03[5]};
-Physical Surface("right surface", 201) = {volume01[3], volume02[3], volume03[3]};
-Physical Surface("bottom surface", 202) = {plane01[1], plane02[1]};
-Physical Surface("top surface", 203) = {volume02[0], volume03[0]};
-Physical Surface("front surface", 204) = {volume01[2], volume02[2]};
-Physical Surface("back surface", 205) = {volume03[4]};
+Physical Surface("left", 201) = {volume01[5], volume01[11], volume01[17]};
+Physical Surface("right", 202) = {volume01[3], volume01[9], volume01[15]};
+Physical Surface("bottom", 203) = {volume01[2]};
+Physical Surface("top", 204) = {volume01[16]};
+Physical Surface("back", 205) = {plane01[1], plane02[1], plane03[1]};
+Physical Surface("front", 206) = {volume01[0], volume01[6], volume01[12]};
+
 
 // define the material indicators
-Physical Volume("material one", 300) = volume01[1];
-Physical Volume("material two", 301) = volume02[1];
-Physical Volume("material three", 302) = volume03[1];
+Physical Volume("steel", 101) = volume01[1];
+Physical Volume("copper", 102) = volume01[7];
+Physical Volume("aluminium", 103) = volume01[13];
+
 

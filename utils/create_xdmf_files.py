@@ -1,4 +1,5 @@
 import importlib.util
+import os.path
 import shutil
 
 
@@ -18,10 +19,22 @@ if not importlib.util.find_spec("h5py"):
 
 import sys
 
+# Choose the xdmf generator to use
+XDMF_GENERATOR_OPTIONS = {
+    1: './external/lkm-navier-stokes-with-fenics/source/',
+    2: './external/lkm-navier-stokes-with-fenics/gmsh-collection/python/'
+}
+SELECTION = 1
+
 try:
     # Add location to path and import "grid_generator"
-    sys.path.insert(0, '../external/lkm-navier-stokes-with-fenics/gmsh-collection/')
-    import generate_xdmf_mesh
+    sys.path.insert(0, XDMF_GENERATOR_OPTIONS[SELECTION])
+
+    if SELECTION == 1:
+        import grid_tools as generate_xdmf_mesh
+    elif SELECTION == 2:
+        import generate_xdmf_mesh
+
 except ModuleNotFoundError:
     raise RuntimeError("Please execute me from the root of the project being 'KontiSim2022_Fussbodenheizung'")
 
@@ -29,6 +42,7 @@ except ModuleNotFoundError:
 def main(args):
     geo_file = args[1]
     print(f"Generating xdmf files from {geo_file}")
+    assert os.path.exists(geo_file), f"The file {geo_file} does not exist"
     generate_xdmf_mesh.generate_xdmf_mesh(geo_file)
 
 
